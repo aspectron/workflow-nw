@@ -183,4 +183,9 @@ impl MenuItemBuilder{
         let menu_item = nw::MenuItem::new(&self.options);
         Ok(menu_item)
     }
+
+    pub fn finalize(self)->Result<(nw::MenuItem, Option<Listener<JsValue>>)>{
+        let menu_item = nw::MenuItem::new(&self.options);
+        Ok((menu_item, self.listener))
+    }
 }
