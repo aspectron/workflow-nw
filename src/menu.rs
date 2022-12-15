@@ -49,8 +49,9 @@ impl MenubarBuilder{
     }
 
     /// Build menubar
+    /// 
     /// optionally attach menubar to app/window
-
+    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/For%20Users/Advanced/Customize%20Menubar/#create-and-set-menubar)
     pub fn build(self, attach:bool)->Result<nw::Menu>{
         self.menubar.create_mac_builtin_with_options(&self.app_name, &self.mac_options);
         for item in self.menu_items{
@@ -146,7 +147,7 @@ impl MenuItemBuilder{
         self.set("submenu", JsValue::from(submenu))
     }
 
-    /// A submenu
+    /// Create submenu from menu items
     /// 
     /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/MenuItem/#new-menuitemoption)
     pub fn submenus(self, items:Vec<MenuItem>)->Self{
