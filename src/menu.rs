@@ -118,7 +118,7 @@ impl MenuItemBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::new(callback);
+        let listener = Listener::with_callback(callback);
         let cb:&Function = listener.into_js();
         self = self.set("click", JsValue::from(cb));
         self.listener = Some(listener);
@@ -178,7 +178,7 @@ impl MenuItemBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_menu_listener(listener)?;
+            app.push_js_value_listener(listener)?;
         }
 
         let menu_item = nw::MenuItem::new(&self.options);

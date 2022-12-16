@@ -73,7 +73,7 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::new(callback);
+        let listener = Listener::with_callback(callback);
         let cb:&Function = listener.into_js();
         self = self.set("active", JsValue::from(cb));
         self.active_listener = Some(listener);
@@ -90,7 +90,7 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::new(callback);
+        let listener = Listener::with_callback(callback);
         let cb:&Function = listener.into_js();
         self = self.set("failed", JsValue::from(cb));
         self.failed_listener = Some(listener);
@@ -104,14 +104,14 @@ impl ShortcutBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_menu_listener(listener)?;
+            app.push_js_value_listener(listener)?;
         }
         if let Some(listener) = self.failed_listener{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_menu_listener(listener)?;
+            app.push_js_value_listener(listener)?;
         }
 
         let menu_item = nw::Shortcut::new(&self.options);

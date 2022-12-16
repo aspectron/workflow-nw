@@ -1,10 +1,12 @@
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 //use workflow_log::log_trace;
 use workflow_wasm::listener::Listener;
 //use workflow_dom::utils::window;
 use nw_sys::{prelude::*, utils, result::Result};
-use web_sys::MouseEvent;
+use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
 use std::sync::Arc;
+use crate::media::MediaStreamTrackKind;
 
 
 //pub type Callback<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
@@ -18,16 +20,18 @@ pub fn app()->Option<Arc<App>>{
 #[derive(Clone)]
 pub struct App{
     pub win_listeners: Arc<Mutex<Vec<Listener<nw::Window>>>>,
-    pub menu_listeners: Arc<Mutex<Vec<Listener<JsValue>>>>,
-    pub listeners: Arc<Mutex<Vec<Listener<MouseEvent>>>>
+    pub js_value_listeners: Arc<Mutex<Vec<Listener<JsValue>>>>,
+    pub listeners: Arc<Mutex<Vec<Listener<MouseEvent>>>>,
+    pub media_stream: Arc<Mutex<Option<MediaStream>>>
 }
 
 impl App{
     pub fn new()->Result<Arc<Self>>{
         let app = Arc::new(Self{
             win_listeners: Arc::new(Mutex::new(vec![])),
-            menu_listeners: Arc::new(Mutex::new(vec![])),
-            listeners: Arc::new(Mutex::new(vec![]))
+            js_value_listeners: Arc::new(Mutex::new(vec![])),
+            listeners: Arc::new(Mutex::new(vec![])),
+            media_stream: Arc::new(Mutex::new(None))
         });
 
         unsafe{
@@ -37,13 +41,61 @@ impl App{
         Ok(app)
     }
 
+    pub fn set_media_stream(&self, media_stream:Option<MediaStream>)->Result<()>{
+        *self.media_stream.lock()? = media_stream;
+        Ok(())
+    }
+
+    pub fn get_media_stream(&self)->Result<Option<MediaStream>>{
+        let media_stream = self.media_stream.lock()?.clone();
+        Ok(media_stream)
+    }
+
+    pub fn stop_media_stream(
+        &self,
+        track_kind:Option<MediaStreamTrackKind>,
+        mut stream: Option<MediaStream>
+    )->Result<()>{
+        if stream.is_none(){
+            stream = self.get_media_stream()?;
+        }
+        if let Some(media_stream) = stream{
+            let tracks = media_stream.get_tracks();
+            let kind = track_kind.unwrap_or(MediaStreamTrackKind::All);
+            let mut all = false;
+            let mut video = false;
+            let mut audio = false;
+            match kind {
+                MediaStreamTrackKind::All=>{
+                    all = true;
+                }
+                MediaStreamTrackKind::Video=>{
+                    video = true;
+                }
+                MediaStreamTrackKind::Audio=>{
+                    audio = true;
+                }
+            }
+
+            for index in 0..tracks.length(){
+                if let Ok(track) = tracks.get(index).dyn_into::<MediaStreamTrack>(){
+                    let k = track.kind();
+                    if all || (k.eq("video") && video) || (k.eq("audio") && audio){
+                        track.stop();
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn push_window_listener(&self, listener:Listener<nw::Window>)->Result<()>{
         self.win_listeners.lock()?.push(listener);
         Ok(())
     }
 
-    pub fn push_menu_listener(&self, listener:Listener<JsValue>)->Result<()>{
-        self.menu_listeners.lock()?.push(listener);
+    pub fn push_js_value_listener(&self, listener:Listener<JsValue>)->Result<()>{
+        self.js_value_listeners.lock()?.push(listener);
         Ok(())
     }
 
@@ -61,7 +113,7 @@ impl App{
     where
         F:FnMut(nw::Window) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::new(callback);
+        let listener = Listener::with_callback(callback);
     
         nw::Window::open_with_options_and_callback(
             url,
@@ -102,7 +154,7 @@ impl App{
         let dom_win = win.window();
         let body = utils::body(Some(dom_win));
 
-        let listener = Listener::new(callback);
+        let listener = Listener::with_callback(callback);
         body.add_event_listener_with_callback("contextmenu", listener.into_js())?;
         self.push_listener(listener)?;
 

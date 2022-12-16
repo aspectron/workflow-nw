@@ -22,5 +22,10 @@ features = [
     'Window',
     'HtmlElement',
     'CustomEvent',
-    'MouseEvent'
+    'MouseEvent',
+    'Navigator',
+    'MediaDevices',
+    'MediaStreamConstraints',
+    'MediaStream',
+    'MediaStreamTrack'
 ]

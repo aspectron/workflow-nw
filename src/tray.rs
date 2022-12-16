@@ -104,7 +104,7 @@ impl TrayIconBuilder{
     where
         F:FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
-        self.listener = Some(Listener::new(callback));
+        self.listener = Some(Listener::with_callback(callback));
 
         self        
     }
