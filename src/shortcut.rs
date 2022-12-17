@@ -104,14 +104,14 @@ impl ShortcutBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_js_value_listener(listener)?;
+            app.push_listener(listener)?;
         }
         if let Some(listener) = self.failed_listener{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_js_value_listener(listener)?;
+            app.push_listener(listener)?;
         }
 
         let menu_item = nw::Shortcut::new(&self.options);

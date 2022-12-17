@@ -194,6 +194,6 @@ pub fn get_user_media(
     let cb = binding.as_ref();
     let _ = promise.then(cb);
 
-    app.push_js_value_listener_without_result(listener)?;
+    app.push_listener(listener)?;
     Ok(())
 }

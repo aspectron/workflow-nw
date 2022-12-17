@@ -178,7 +178,7 @@ impl MenuItemBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_js_value_listener(listener)?;
+            app.push_listener(listener)?;
         }
 
         let menu_item = nw::MenuItem::new(&self.options);

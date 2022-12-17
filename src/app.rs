@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 //use workflow_log::log_trace;
-pub use workflow_wasm::listener::{Listener, Callback, CallbackWithouResult};
+pub use workflow_wasm::listener::{Listener, CallbackListener, Callback, CallbackWithouResult};
 use nw_sys::{prelude::*, utils, result::Result};
 use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
 use std::sync::Arc;
@@ -19,7 +19,9 @@ pub struct App{
     pub js_value_listeners: Arc<Mutex<Vec<Listener<Callback<JsValue>>>>>,
     pub js_value_listeners_without_result: Arc<Mutex<Vec<Listener<CallbackWithouResult<JsValue>>>>>,
     pub mouse_listeners: Arc<Mutex<Vec<Listener<Callback<MouseEvent>>>>>,
-    pub media_stream: Arc<Mutex<Option<MediaStream>>>
+    pub media_stream: Arc<Mutex<Option<MediaStream>>>,
+
+    pub listeners: Arc<Mutex<Vec<Arc<dyn CallbackListener>>>>,
 }
 
 impl App{
@@ -29,6 +31,7 @@ impl App{
             js_value_listeners: Arc::new(Mutex::new(vec![])),
             js_value_listeners_without_result: Arc::new(Mutex::new(vec![])),
             mouse_listeners: Arc::new(Mutex::new(vec![])),
+            listeners: Arc::new(Mutex::new(vec![])),
             media_stream: Arc::new(Mutex::new(None))
         });
 
@@ -87,6 +90,7 @@ impl App{
         Ok(())
     }
 
+    /*
     pub fn push_window_listener(&self, listener:Listener<Callback<nw::Window>>)->Result<()>{
         let mut locked = match self.win_listeners.lock(){
             Ok(a)=>a,
@@ -131,6 +135,21 @@ impl App{
         locked.push(listener);
         Ok(())
     }
+    */
+
+    pub fn push_listener<L>(&self, listener:L)->Result<()>
+    where
+        L: Sized + CallbackListener + 'static
+    {
+        let mut locked = match self.listeners.lock(){
+            Ok(a)=>a,
+            Err(e)=>{
+                return Err(e.to_string().into());
+            }
+        };
+        locked.push(Arc::new(listener));
+        Ok(())
+    }
 
     pub fn create_window_with_callback<F>(
         &self,
@@ -149,7 +168,7 @@ impl App{
             listener.into_js()
         );
 
-        self.push_window_listener(listener)?;
+        self.push_listener(listener)?;
         Ok(())
     }
 
@@ -176,14 +195,15 @@ impl App{
 
     pub fn on_context_menu<F>(&self, callback:F)->Result<()>
     where
-        F: FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
+        F: Sized+FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
         let win = nw::Window::get();
         let dom_win = win.window();
         let body = utils::body(Some(dom_win));
 
-        let listener = Listener::with_callback(callback);
+        let listener = Listener::<Callback<MouseEvent>>::with_callback(callback);
         body.add_event_listener_with_callback("contextmenu", listener.into_js())?;
+
         self.push_listener(listener)?;
 
         Ok(())
