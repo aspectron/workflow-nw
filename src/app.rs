@@ -1,18 +1,11 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 //use workflow_log::log_trace;
-use workflow_wasm::listener::Listener;
-//use workflow_dom::utils::window;
+pub use workflow_wasm::listener::{Listener, Callback, CallbackWithouResult};
 use nw_sys::{prelude::*, utils, result::Result};
 use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
 use std::sync::Arc;
 use crate::media::MediaStreamTrackKind;
-//use wasm_bindgen::closure::WasmClosure;
-//use wasm_bindgen::closure::IntoWasmClosure;
-
-//trait A<T>: FnMut(T) -> std::result::Result<(), JsValue> + std::fmt::Debug{}
-pub type Callback<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
-pub type CallbackWithouResult<T> = dyn FnMut(T);
 
 static mut APP:Option<Arc<App>> = None;
 
