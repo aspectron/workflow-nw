@@ -3,11 +3,11 @@ use js_sys::Object;
 use nw_sys::options::OptionsExt;
 use nw_sys::result::Result;
 use workflow_wasm::listener::Listener;
-use workflow_log::log_info;
+use workflow_log::log_debug;
 use workflow_dom::utils::window;
 use std::sync::Arc;
 use web_sys::MediaStream;
-use crate::app::app;
+use crate::app::{app, CallbackWithouResult};
 
 pub enum MediaStreamTrackKind {
     Video,
@@ -159,9 +159,9 @@ pub fn get_user_media(
     let navigator = window().navigator();
     let media_devices = navigator.media_devices()?;
 
-    log_info!("navigator: {:?}", navigator);
-    log_info!("media_devices: {:?}", media_devices);
-    log_info!("video_constraints: {:?}", video_constraints);
+    log_debug!("navigator: {:?}", navigator);
+    log_debug!("media_devices: {:?}", media_devices);
+    log_debug!("video_constraints: {:?}", video_constraints);
 
     let audio_constraints = audio_constraints.unwrap_or(JsValue::from(false));
 
@@ -170,13 +170,13 @@ pub fn get_user_media(
         .audio(&audio_constraints)
         .video(&JsValue::from(&video_constraints));
 
-    log_info!("constraints: {:?}", constraints);
+    log_debug!("constraints: {:?}", constraints);
 
     let promise = media_devices.get_user_media_with_constraints(&constraints)?;
 
-    let mut listener = Listener::<JsValue>::new();
+    let mut listener = Listener::<CallbackWithouResult<JsValue>>::new();
 
-    listener.callback_without_result(move |value|{
+    listener.callback(move |value:JsValue|{
         if let Ok(media_stream) = value.dyn_into::<MediaStream>(){
             callback(Some(media_stream));
         }else{
@@ -185,7 +185,7 @@ pub fn get_user_media(
     });
 
     //log_info!("listener: {:?}", listener);
-    let binding = match listener.closure_without_result(){
+    let binding = match listener.closure(){
         Ok(b)=>b,
         Err(err)=>{
             return Err(format!("media::get_user_media(), listener.closure_without_result failed, error: {:?}", err).into());
@@ -194,6 +194,6 @@ pub fn get_user_media(
     let cb = binding.as_ref();
     let _ = promise.then(cb);
 
-    app.push_js_value_listener(listener)?;
+    app.push_js_value_listener_without_result(listener)?;
     Ok(())
 }

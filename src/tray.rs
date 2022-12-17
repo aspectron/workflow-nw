@@ -3,13 +3,13 @@ use nw::{Menu, Tray, tray::Options, menu_item::MenuItem};
 use nw_sys::{prelude::*, result::Result};
 use workflow_wasm::listener::Listener;
 use web_sys::MouseEvent;
-use crate::app::app;
+use crate::app::{app, Callback};
 
 pub struct TrayIconBuilder{
     pub options:Options,
     pub menu: Option<Menu>,
     pub tooltip: Option<String>,
-    pub listener: Option<Listener<MouseEvent>>
+    pub listener: Option<Listener<Callback<MouseEvent>>>
 }
 
 impl TrayIconBuilder{
@@ -121,7 +121,7 @@ impl TrayIconBuilder{
         self.menu(submenu)
     }
 
-    pub fn build_impl(self)->Result<(Tray, Option<Listener<MouseEvent>>)>{
+    pub fn build_impl(self)->Result<(Tray, Option<Listener<Callback<MouseEvent>>>)>{
 
         let tray = Tray::new(&self.options);
 
@@ -155,7 +155,7 @@ impl TrayIconBuilder{
         Ok(tray)
     }
 
-    pub fn finalize(self)->Result<(Tray, Option<Listener<MouseEvent>>)>{
+    pub fn finalize(self)->Result<(Tray, Option<Listener<Callback<MouseEvent>>>)>{
         let (tray, listener) = self.build_impl()?;
 
         Ok((tray, listener))

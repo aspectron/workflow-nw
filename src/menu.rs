@@ -4,7 +4,7 @@ use nw_sys::{prelude::*, result::Result};
 use workflow_wasm::listener::Listener;
 use nw::menu_item::Type as MenuItemType;
 use nw::{Menu, MenuItem};
-use crate::app::app;
+use crate::app::{app, Callback};
 
 pub fn menu_separator()->nw::MenuItem{
     nw::MenuItem::new(&nw::menu_item::Type::Separator.into())
@@ -67,7 +67,7 @@ impl MenubarBuilder{
 
 pub struct MenuItemBuilder{
     pub options: nw::menu_item::Options,
-    pub listener: Option<Listener<JsValue>>
+    pub listener: Option<Listener<Callback<JsValue>>>
 }
 
 impl MenuItemBuilder{
@@ -185,7 +185,7 @@ impl MenuItemBuilder{
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw::MenuItem, Option<Listener<JsValue>>)>{
+    pub fn finalize(self)->Result<(nw::MenuItem, Option<Listener<Callback<JsValue>>>)>{
         let menu_item = nw::MenuItem::new(&self.options);
         Ok((menu_item, self.listener))
     }

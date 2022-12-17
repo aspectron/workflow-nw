@@ -2,12 +2,12 @@ use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
 use workflow_wasm::listener::Listener;
-use crate::app::app;
+use crate::app::{app, Callback};
 
 pub struct ShortcutBuilder{
     pub options: nw::shortcut::Options,
-    pub active_listener: Option<Listener<JsValue>>,
-    pub failed_listener: Option<Listener<JsValue>>
+    pub active_listener: Option<Listener<Callback<JsValue>>>,
+    pub failed_listener: Option<Listener<Callback<JsValue>>>
 }
 
 impl ShortcutBuilder{
@@ -118,7 +118,7 @@ impl ShortcutBuilder{
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw::Shortcut, Option<Listener<JsValue>>, Option<Listener<JsValue>>)>{
+    pub fn finalize(self)->Result<(nw::Shortcut, Option<Listener<Callback<JsValue>>>, Option<Listener<Callback<JsValue>>>)>{
         let menu_item = nw::Shortcut::new(&self.options);
         Ok((menu_item, self.active_listener, self.failed_listener))
     }
