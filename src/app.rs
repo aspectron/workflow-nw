@@ -4,7 +4,6 @@ use wasm_bindgen::JsCast;
 pub use workflow_wasm::listener::{Listener, CallbackListener, Callback, CallbackWithouResult};
 use nw_sys::{prelude::*, utils, result::Result};
 use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
-use std::sync::Arc;
 use crate::media::MediaStreamTrackKind;
 
 static mut APP:Option<Arc<App>> = None;
@@ -15,22 +14,13 @@ pub fn app()->Option<Arc<App>>{
 
 #[derive(Clone)]
 pub struct App{
-    pub win_listeners: Arc<Mutex<Vec<Listener<Callback<nw::Window>>>>>,
-    pub js_value_listeners: Arc<Mutex<Vec<Listener<Callback<JsValue>>>>>,
-    pub js_value_listeners_without_result: Arc<Mutex<Vec<Listener<CallbackWithouResult<JsValue>>>>>,
-    pub mouse_listeners: Arc<Mutex<Vec<Listener<Callback<MouseEvent>>>>>,
     pub media_stream: Arc<Mutex<Option<MediaStream>>>,
-
     pub listeners: Arc<Mutex<Vec<Arc<dyn CallbackListener>>>>,
 }
 
 impl App{
     pub fn new()->Result<Arc<Self>>{
         let app = Arc::new(Self{
-            win_listeners: Arc::new(Mutex::new(vec![])),
-            js_value_listeners: Arc::new(Mutex::new(vec![])),
-            js_value_listeners_without_result: Arc::new(Mutex::new(vec![])),
-            mouse_listeners: Arc::new(Mutex::new(vec![])),
             listeners: Arc::new(Mutex::new(vec![])),
             media_stream: Arc::new(Mutex::new(None))
         });
@@ -90,53 +80,6 @@ impl App{
         Ok(())
     }
 
-    /*
-    pub fn push_window_listener(&self, listener:Listener<Callback<nw::Window>>)->Result<()>{
-        let mut locked = match self.win_listeners.lock(){
-            Ok(a)=>a,
-            Err(e)=>{
-                return Err(e.to_string().into());
-            }
-        };
-        locked.push(listener);
-        Ok(())
-    }
-
-    pub fn push_js_value_listener(&self, listener:Listener<Callback<JsValue>>)->Result<()>{
-        let mut locked = match self.js_value_listeners.lock(){
-            Ok(a)=>a,
-            Err(e)=>{
-                return Err(e.to_string().into());
-            }
-        };
-        locked.push(listener);
-        Ok(())
-    }
-
-    pub fn push_js_value_listener_without_result(&self, listener:Listener<CallbackWithouResult<JsValue>>)->Result<()>{
-        let mut locked = match self.js_value_listeners_without_result.lock(){
-            Ok(a)=>a,
-            Err(e)=>{
-                return Err(e.to_string().into());
-            }
-        };
-        locked.push(listener);
-        Ok(())
-    }
-
-    pub fn push_listener(&self, listener:Listener<Callback<MouseEvent>>)->Result<()>
-    {
-        let mut locked = match self.mouse_listeners.lock(){
-            Ok(a)=>a,
-            Err(e)=>{
-                return Err(e.to_string().into());
-            }
-        };
-        locked.push(listener);
-        Ok(())
-    }
-    */
-
     pub fn push_listener<L>(&self, listener:L)->Result<()>
     where
         L: Sized + CallbackListener + 'static
@@ -154,15 +97,15 @@ impl App{
     pub fn create_window_with_callback<F>(
         &self,
         url:&str,
-        option:&nw::window::Options,
+        option:&nw_sys::window::Options,
         callback:F
     )->Result<()>
     where
-        F:FnMut(nw::Window) -> std::result::Result<(), JsValue> + 'static
+        F:FnMut(nw_sys::Window) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::<Callback<nw::Window>>::with_callback(callback);
+        let listener = Listener::<Callback<nw_sys::Window>>::with_callback(callback);
     
-        nw::Window::open_with_options_and_callback(
+        nw_sys::window::open_with_options_and_callback(
             url,
             option,
             listener.into_js()
@@ -172,14 +115,14 @@ impl App{
         Ok(())
     }
 
-    pub fn create_window(url:&str, option:&nw::window::Options)->Result<()>{
-        nw::Window::open_with_options(url, option);
+    pub fn create_window(url:&str, option:&nw_sys::window::Options)->Result<()>{
+        nw_sys::window::open_with_options(url, option);
 
         Ok(())
     }
 
-    pub fn create_context_menu(&self, menus: Vec<nw::MenuItem>)->Result<()>{
-        let popup_menu = nw::Menu::new();
+    pub fn create_context_menu(&self, menus: Vec<nw_sys::MenuItem>)->Result<()>{
+        let popup_menu = nw_sys::Menu::new();
         for menu_item in menus{
             popup_menu.append(&menu_item);
         }
@@ -197,7 +140,7 @@ impl App{
     where
         F: Sized+FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
-        let win = nw::Window::get();
+        let win = nw_sys::window::get();
         let dom_win = win.window();
         let body = utils::body(Some(dom_win));
 

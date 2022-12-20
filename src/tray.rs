@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use nw::{Menu, Tray, tray::Options, menu_item::MenuItem};
+use nw_sys::{Menu, Tray, tray::Options, menu_item::MenuItem};
 use nw_sys::{prelude::*, result::Result};
 use workflow_wasm::listener::Listener;
 use web_sys::MouseEvent;
@@ -113,7 +113,7 @@ impl TrayIconBuilder{
     /// 
     /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traymenu)
     pub fn submenus(self, items:Vec<MenuItem>)->Self{
-        let submenu = nw::Menu::new();
+        let submenu = nw_sys::Menu::new();
         for menu_item in items{
             submenu.append(&menu_item);
         }

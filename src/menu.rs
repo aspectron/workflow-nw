@@ -2,28 +2,28 @@ use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
 use workflow_wasm::listener::Listener;
-use nw::menu_item::Type as MenuItemType;
-use nw::{Menu, MenuItem};
+use nw_sys::menu_item::Type as MenuItemType;
+use nw_sys::{Menu, MenuItem};
 use crate::app::{app, Callback};
 
-pub fn menu_separator()->nw::MenuItem{
-    nw::MenuItem::new(&nw::menu_item::Type::Separator.into())
+pub fn menu_separator()->nw_sys::MenuItem{
+    nw_sys::MenuItem::new(&nw_sys::menu_item::Type::Separator.into())
 }
 
 
 pub struct MenubarBuilder{
-    pub mac_options: nw::menu::MacOptions,
+    pub mac_options: nw_sys::menu::MacOptions,
     pub app_name: String,
-    pub menubar: nw::Menu,
-    pub menu_items: Vec<nw::MenuItem>
+    pub menubar: nw_sys::Menu,
+    pub menu_items: Vec<nw_sys::MenuItem>
 }
 
 impl MenubarBuilder{
     pub fn new(app_name:&str)->Self{
         Self{
-            mac_options: nw::menu::MacOptions::new(),
+            mac_options: nw_sys::menu::MacOptions::new(),
             app_name: app_name.to_string(),
-            menubar: nw::Menu::new_with_options(&nw::menu::Type::Menubar.into()),
+            menubar: nw_sys::Menu::new_with_options(&nw_sys::menu::Type::Menubar.into()),
             menu_items: vec![]
         }
     }
@@ -43,7 +43,7 @@ impl MenubarBuilder{
     }
 
     /// Append new child menu item
-    pub fn append(mut self, menu_item:nw::MenuItem)->Self{
+    pub fn append(mut self, menu_item:nw_sys::MenuItem)->Self{
         self.menu_items.push(menu_item);
         self
     }
@@ -52,13 +52,13 @@ impl MenubarBuilder{
     /// 
     /// optionally attach menubar to app/window
     /// [NWJS Documentation](https://docs.nwjs.io/en/latest/For%20Users/Advanced/Customize%20Menubar/#create-and-set-menubar)
-    pub fn build(self, attach:bool)->Result<nw::Menu>{
+    pub fn build(self, attach:bool)->Result<nw_sys::Menu>{
         self.menubar.create_mac_builtin_with_options(&self.app_name, &self.mac_options);
         for item in self.menu_items{
             self.menubar.append(&item);
         }
         if attach{
-            nw::Window::get().set_menu(&self.menubar);
+            nw_sys::window::get().set_menu(&self.menubar);
         }
         Ok(self.menubar)
     }
@@ -66,14 +66,14 @@ impl MenubarBuilder{
 }
 
 pub struct MenuItemBuilder{
-    pub options: nw::menu_item::Options,
+    pub options: nw_sys::menu_item::Options,
     pub listener: Option<Listener<Callback<JsValue>>>
 }
 
 impl MenuItemBuilder{
     pub fn new()->Self{
         Self{
-            options: nw::menu_item::Options::new(),
+            options: nw_sys::menu_item::Options::new(),
             listener: None
         }
     }
@@ -151,7 +151,7 @@ impl MenuItemBuilder{
     /// 
     /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/MenuItem/#new-menuitemoption)
     pub fn submenus(self, items:Vec<MenuItem>)->Self{
-        let submenu = nw::Menu::new();
+        let submenu = nw_sys::Menu::new();
         for menu_item in items{
             submenu.append(&menu_item);
         }
@@ -172,7 +172,7 @@ impl MenuItemBuilder{
         self.set("modifiers", JsValue::from(modifiers))
     }
 
-    pub fn build(self)->Result<nw::MenuItem>{
+    pub fn build(self)->Result<nw_sys::MenuItem>{
         if let Some(listener) = self.listener{
             let app = match app(){
                 Some(app)=>app,
@@ -181,12 +181,12 @@ impl MenuItemBuilder{
             app.push_listener(listener)?;
         }
 
-        let menu_item = nw::MenuItem::new(&self.options);
+        let menu_item = nw_sys::MenuItem::new(&self.options);
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw::MenuItem, Option<Listener<Callback<JsValue>>>)>{
-        let menu_item = nw::MenuItem::new(&self.options);
+    pub fn finalize(self)->Result<(nw_sys::MenuItem, Option<Listener<Callback<JsValue>>>)>{
+        let menu_item = nw_sys::MenuItem::new(&self.options);
         Ok((menu_item, self.listener))
     }
 }

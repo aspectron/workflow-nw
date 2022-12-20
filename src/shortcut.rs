@@ -5,7 +5,7 @@ use workflow_wasm::listener::Listener;
 use crate::app::{app, Callback};
 
 pub struct ShortcutBuilder{
-    pub options: nw::shortcut::Options,
+    pub options: nw_sys::shortcut::Options,
     pub active_listener: Option<Listener<Callback<JsValue>>>,
     pub failed_listener: Option<Listener<Callback<JsValue>>>
 }
@@ -13,7 +13,7 @@ pub struct ShortcutBuilder{
 impl ShortcutBuilder{
     pub fn new()->Self{
         Self{
-            options: nw::shortcut::Options::new(),
+            options: nw_sys::shortcut::Options::new(),
             active_listener: None,
             failed_listener: None
         }
@@ -98,7 +98,7 @@ impl ShortcutBuilder{
         self        
     }
 
-    pub fn build(self)->Result<nw::Shortcut>{
+    pub fn build(self)->Result<nw_sys::Shortcut>{
         if let Some(listener) = self.active_listener{
             let app = match app(){
                 Some(app)=>app,
@@ -114,12 +114,12 @@ impl ShortcutBuilder{
             app.push_listener(listener)?;
         }
 
-        let menu_item = nw::Shortcut::new(&self.options);
+        let menu_item = nw_sys::Shortcut::new(&self.options);
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw::Shortcut, Option<Listener<Callback<JsValue>>>, Option<Listener<Callback<JsValue>>>)>{
-        let menu_item = nw::Shortcut::new(&self.options);
+    pub fn finalize(self)->Result<(nw_sys::Shortcut, Option<Listener<Callback<JsValue>>>, Option<Listener<Callback<JsValue>>>)>{
+        let menu_item = nw_sys::Shortcut::new(&self.options);
         Ok((menu_item, self.active_listener, self.failed_listener))
     }
 }
