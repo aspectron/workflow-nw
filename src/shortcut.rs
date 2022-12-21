@@ -113,8 +113,8 @@ impl ShortcutBuilder{
             app.push_callback(listener)?;
         }
 
-        let menu_item = nw_sys::Shortcut::new(&self.options);
-        Ok(menu_item)
+        let shortcut = nw_sys::Shortcut::new(&self.options);
+        Ok(shortcut)
     }
 
     pub fn finalize(self)
@@ -123,7 +123,7 @@ impl ShortcutBuilder{
         Option<Callback<CallbackClosure<JsValue>>>,
         Option<Callback<CallbackClosure<JsValue>>>
     )>{
-        let menu_item = nw_sys::Shortcut::new(&self.options);
-        Ok((menu_item, self.active_listener, self.failed_listener))
+        let shortcut = nw_sys::Shortcut::new(&self.options);
+        Ok((shortcut, self.active_listener, self.failed_listener))
     }
 }

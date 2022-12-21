@@ -5,11 +5,12 @@ use nw_sys::menu_item::Type as MenuItemType;
 use nw_sys::{Menu, MenuItem};
 use crate::app::{app, Callback, CallbackClosure};
 
+/// create a Separator [`MenuItem`](nw_sys::MenuItem)
 pub fn menu_separator()->nw_sys::MenuItem{
     nw_sys::MenuItem::new(&nw_sys::menu_item::Type::Separator.into())
 }
 
-
+/// Menubar Builder
 pub struct MenubarBuilder{
     pub mac_options: nw_sys::menu::MacOptions,
     pub app_name: String,
@@ -64,6 +65,7 @@ impl MenubarBuilder{
 
 }
 
+/// MenuItem Builder
 pub struct MenuItemBuilder{
     pub options: nw_sys::menu_item::Options,
     pub listener: Option<Callback<CallbackClosure<JsValue>>>
