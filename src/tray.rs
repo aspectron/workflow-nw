@@ -1,15 +1,14 @@
 use wasm_bindgen::prelude::*;
 use nw_sys::{Menu, Tray, tray::Options, menu_item::MenuItem};
 use nw_sys::{prelude::*, result::Result};
-use workflow_wasm::listener::Listener;
 use web_sys::MouseEvent;
-use crate::app::{app, Callback};
+use crate::app::{app, Callback, CallbackClosure};
 
 pub struct TrayIconBuilder{
     pub options:Options,
     pub menu: Option<Menu>,
     pub tooltip: Option<String>,
-    pub listener: Option<Listener<Callback<MouseEvent>>>
+    pub listener: Option<Callback<CallbackClosure<MouseEvent>>>
 }
 
 impl TrayIconBuilder{
@@ -104,7 +103,7 @@ impl TrayIconBuilder{
     where
         F:FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
-        self.listener = Some(Listener::with_callback(callback));
+        self.listener = Some(Callback::with_closure(callback));
 
         self        
     }
@@ -121,7 +120,7 @@ impl TrayIconBuilder{
         self.menu(submenu)
     }
 
-    pub fn build_impl(self)->Result<(Tray, Option<Listener<Callback<MouseEvent>>>)>{
+    pub fn build_impl(self)->Result<(Tray, Option<Callback<CallbackClosure<MouseEvent>>>)>{
 
         let tray = Tray::new(&self.options);
 
@@ -149,13 +148,13 @@ impl TrayIconBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_listener(listener)?;
+            app.push_callback(listener)?;
         }
 
         Ok(tray)
     }
 
-    pub fn finalize(self)->Result<(Tray, Option<Listener<Callback<MouseEvent>>>)>{
+    pub fn finalize(self)->Result<(Tray, Option<Callback<CallbackClosure<MouseEvent>>>)>{
         let (tray, listener) = self.build_impl()?;
 
         Ok((tray, listener))

@@ -1,10 +1,9 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
-use workflow_wasm::listener::Listener;
 use nw_sys::menu_item::Type as MenuItemType;
 use nw_sys::{Menu, MenuItem};
-use crate::app::{app, Callback};
+use crate::app::{app, Callback, CallbackClosure};
 
 pub fn menu_separator()->nw_sys::MenuItem{
     nw_sys::MenuItem::new(&nw_sys::menu_item::Type::Separator.into())
@@ -67,7 +66,7 @@ impl MenubarBuilder{
 
 pub struct MenuItemBuilder{
     pub options: nw_sys::menu_item::Options,
-    pub listener: Option<Listener<Callback<JsValue>>>
+    pub listener: Option<Callback<CallbackClosure<JsValue>>>
 }
 
 impl MenuItemBuilder{
@@ -118,7 +117,7 @@ impl MenuItemBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::with_callback(callback);
+        let listener = Callback::with_closure(callback);
         let cb:&Function = listener.into_js();
         self = self.set("click", JsValue::from(cb));
         self.listener = Some(listener);
@@ -178,14 +177,14 @@ impl MenuItemBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_listener(listener)?;
+            app.push_callback(listener)?;
         }
 
         let menu_item = nw_sys::MenuItem::new(&self.options);
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw_sys::MenuItem, Option<Listener<Callback<JsValue>>>)>{
+    pub fn finalize(self)->Result<(nw_sys::MenuItem, Option<Callback<CallbackClosure<JsValue>>>)>{
         let menu_item = nw_sys::MenuItem::new(&self.options);
         Ok((menu_item, self.listener))
     }

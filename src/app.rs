@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 //use workflow_log::log_trace;
-pub use workflow_wasm::listener::{Listener, CallbackListener, Callback, CallbackWithouResult};
+pub use workflow_wasm::listener::{Callback, Listener, CallbackClosure, CallbackClosureWithoutResult};
 use nw_sys::{prelude::*, utils, result::Result};
 use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
 use crate::media::MediaStreamTrackKind;
@@ -15,13 +15,13 @@ pub fn app()->Option<Arc<App>>{
 #[derive(Clone)]
 pub struct App{
     pub media_stream: Arc<Mutex<Option<MediaStream>>>,
-    pub listeners: Arc<Mutex<Vec<Arc<dyn CallbackListener>>>>,
+    pub callbacks: Arc<Mutex<Vec<Arc<dyn Listener>>>>,
 }
 
 impl App{
     pub fn new()->Result<Arc<Self>>{
         let app = Arc::new(Self{
-            listeners: Arc::new(Mutex::new(vec![])),
+            callbacks: Arc::new(Mutex::new(vec![])),
             media_stream: Arc::new(Mutex::new(None))
         });
 
@@ -80,17 +80,17 @@ impl App{
         Ok(())
     }
 
-    pub fn push_listener<L>(&self, listener:L)->Result<()>
+    pub fn push_callback<L>(&self, callback:L)->Result<()>
     where
-        L: Sized + CallbackListener + 'static
+        L: Sized + Listener + 'static
     {
-        let mut locked = match self.listeners.lock(){
+        let mut locked = match self.callbacks.lock(){
             Ok(a)=>a,
             Err(e)=>{
                 return Err(e.to_string().into());
             }
         };
-        locked.push(Arc::new(listener));
+        locked.push(Arc::new(callback));
         Ok(())
     }
 
@@ -103,7 +103,7 @@ impl App{
     where
         F:FnMut(nw_sys::Window) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::<Callback<nw_sys::Window>>::with_callback(callback);
+        let listener = Callback::<CallbackClosure<nw_sys::Window>>::with_closure(callback);
     
         nw_sys::window::open_with_options_and_callback(
             url,
@@ -111,7 +111,7 @@ impl App{
             listener.into_js()
         );
 
-        self.push_listener(listener)?;
+        self.push_callback(listener)?;
         Ok(())
     }
 
@@ -144,10 +144,10 @@ impl App{
         let dom_win = win.window();
         let body = utils::body(Some(dom_win));
 
-        let listener = Listener::<Callback<MouseEvent>>::with_callback(callback);
+        let listener = Callback::<CallbackClosure<MouseEvent>>::with_closure(callback);
         body.add_event_listener_with_callback("contextmenu", listener.into_js())?;
 
-        self.push_listener(listener)?;
+        self.push_callback(listener)?;
 
         Ok(())
     }

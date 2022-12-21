@@ -1,13 +1,12 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
-use workflow_wasm::listener::Listener;
-use crate::app::{app, Callback};
+use crate::app::{app, Callback, CallbackClosure};
 
 pub struct ShortcutBuilder{
     pub options: nw_sys::shortcut::Options,
-    pub active_listener: Option<Listener<Callback<JsValue>>>,
-    pub failed_listener: Option<Listener<Callback<JsValue>>>
+    pub active_listener: Option<Callback<CallbackClosure<JsValue>>>,
+    pub failed_listener: Option<Callback<CallbackClosure<JsValue>>>
 }
 
 impl ShortcutBuilder{
@@ -73,7 +72,7 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::with_callback(callback);
+        let listener = Callback::with_closure(callback);
         let cb:&Function = listener.into_js();
         self = self.set("active", JsValue::from(cb));
         self.active_listener = Some(listener);
@@ -90,7 +89,7 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Listener::with_callback(callback);
+        let listener = Callback::with_closure(callback);
         let cb:&Function = listener.into_js();
         self = self.set("failed", JsValue::from(cb));
         self.failed_listener = Some(listener);
@@ -104,21 +103,26 @@ impl ShortcutBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_listener(listener)?;
+            app.push_callback(listener)?;
         }
         if let Some(listener) = self.failed_listener{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_listener(listener)?;
+            app.push_callback(listener)?;
         }
 
         let menu_item = nw_sys::Shortcut::new(&self.options);
         Ok(menu_item)
     }
 
-    pub fn finalize(self)->Result<(nw_sys::Shortcut, Option<Listener<Callback<JsValue>>>, Option<Listener<Callback<JsValue>>>)>{
+    pub fn finalize(self)
+    ->Result<(
+        nw_sys::Shortcut,
+        Option<Callback<CallbackClosure<JsValue>>>,
+        Option<Callback<CallbackClosure<JsValue>>>
+    )>{
         let menu_item = nw_sys::Shortcut::new(&self.options);
         Ok((menu_item, self.active_listener, self.failed_listener))
     }
