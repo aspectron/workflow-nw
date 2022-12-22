@@ -73,14 +73,14 @@ impl MenubarBuilder{
 /// MenuItem Builder
 pub struct MenuItemBuilder{
     pub options: nw_sys::menu_item::Options,
-    pub listener: Option<Callback<CallbackClosure<JsValue>>>
+    pub callback: Option<Callback<CallbackClosure<JsValue>>>
 }
 
 impl MenuItemBuilder{
     pub fn new()->Self{
         Self{
             options: nw_sys::menu_item::Options::new(),
-            listener: None
+            callback: None
         }
     }
 
@@ -124,10 +124,10 @@ impl MenuItemBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::new(callback);
-        let cb:&Function = listener.as_ref();//.into_js();
+        let callback = Callback::new(callback);
+        let cb:&Function = callback.as_ref();//.into_js();
         self = self.set("click", JsValue::from(cb));
-        self.listener = Some(listener);
+        self.callback = Some(callback);
 
         self        
     }
@@ -179,12 +179,12 @@ impl MenuItemBuilder{
     }
 
     pub fn build(self)->Result<nw_sys::MenuItem>{
-        if let Some(listener) = self.listener{
+        if let Some(callback) = self.callback{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.callbacks.insert(listener)?;
+            app.callbacks.insert(callback)?;
         }
 
         let menu_item = nw_sys::MenuItem::new(&self.options);
@@ -193,6 +193,6 @@ impl MenuItemBuilder{
 
     pub fn finalize(self)->Result<(nw_sys::MenuItem, Option<Callback<CallbackClosure<JsValue>>>)>{
         let menu_item = nw_sys::MenuItem::new(&self.options);
-        Ok((menu_item, self.listener))
+        Ok((menu_item, self.callback))
     }
 }

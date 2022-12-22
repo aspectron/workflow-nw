@@ -11,20 +11,20 @@ use workflow_wasm::prelude::*;
 
 /// Provides a builder pattern for constructing a system tray menu
 /// for the application.
-pub struct TrayIconBuilder{
+pub struct TrayMenuBuilder{
     pub options:Options,
     pub menu: Option<Menu>,
     pub tooltip: Option<String>,
-    pub listener: Option<Callback<CallbackClosure<MouseEvent>>>
+    pub callback: Option<Callback<CallbackClosure<MouseEvent>>>
 }
 
-impl TrayIconBuilder{
+impl TrayMenuBuilder{
     pub fn new()->Self{
         Self{
             options: Options::new(),
             menu: None,
             tooltip: None,
-            listener: None
+            callback: None
         }
     }
 
@@ -110,7 +110,7 @@ impl TrayIconBuilder{
     where
         F:FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
-        self.listener = Some(Callback::new(callback));
+        self.callback = Some(Callback::new(callback));
 
         self        
     }
@@ -138,9 +138,9 @@ impl TrayIconBuilder{
             tray.set_tooltip(&tooltip);
         }
 
-        if let Some(listener) = self.listener{
-            tray.on("click", listener.into_js());
-            Ok((tray, Some(listener)))
+        if let Some(callback) = self.callback{
+            tray.on("click", callback.as_ref());
+            Ok((tray, Some(callback)))
         }else{
             Ok((tray, None))
         }
@@ -148,23 +148,23 @@ impl TrayIconBuilder{
 
     pub fn build(self)->Result<Tray>{
 
-        let (tray, listener) = self.build_impl()?;
+        let (tray, callback) = self.build_impl()?;
 
-        if let Some(listener) = listener{
+        if let Some(callback) = callback{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.callbacks.insert(listener)?;
+            app.callbacks.insert(callback)?;
         }
 
         Ok(tray)
     }
 
     pub fn finalize(self)->Result<(Tray, Option<Callback<CallbackClosure<MouseEvent>>>)>{
-        let (tray, listener) = self.build_impl()?;
+        let (tray, callback) = self.build_impl()?;
 
-        Ok((tray, listener))
+        Ok((tray, callback))
     }
     
 }

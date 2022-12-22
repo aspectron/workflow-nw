@@ -169,7 +169,7 @@ pub fn get_user_media(
 
     let promise = media_devices.get_user_media_with_constraints(&constraints)?;
 
-    let listener = Callback::new(move |value:JsValue|{
+    let callback = Callback::new(move |value:JsValue|{
         if let Ok(media_stream) = value.dyn_into::<MediaStream>(){
             callback(Some(media_stream));
         }else{
@@ -177,15 +177,15 @@ pub fn get_user_media(
         }
     });
 
-    let binding = match listener.closure(){
+    let binding = match callback.closure(){
         Ok(b)=>b,
         Err(err)=>{
-            return Err(format!("media::get_user_media(), listener.closure() failed, error: {:?}", err).into());
+            return Err(format!("media::get_user_media(), callback.closure() failed, error: {:?}", err).into());
         }
     };
 
     let _ = promise.then(binding.as_ref());
 
-    app.callbacks.insert(listener)?;
+    app.callbacks.insert(callback)?;
     Ok(())
 }

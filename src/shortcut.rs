@@ -3,7 +3,6 @@
 //! 
 
 use wasm_bindgen::prelude::*;
-use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
 use crate::application::app;
 use workflow_wasm::prelude::*;
@@ -13,16 +12,16 @@ use workflow_wasm::prelude::*;
 /// keyboard shortcuts.
 pub struct ShortcutBuilder{
     pub options: nw_sys::shortcut::Options,
-    pub active_listener: Option<Callback<CallbackClosure<JsValue>>>,
-    pub failed_listener: Option<Callback<CallbackClosure<JsValue>>>
+    pub active_callback: Option<Callback<CallbackClosure<JsValue>>>,
+    pub failed_callback: Option<Callback<CallbackClosure<JsValue>>>
 }
 
 impl ShortcutBuilder{
     pub fn new()->Self{
         Self{
             options: nw_sys::shortcut::Options::new(),
-            active_listener: None,
-            failed_listener: None
+            active_callback: None,
+            failed_callback: None
         }
     }
 
@@ -80,9 +79,9 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::new(callback);
-        self = self.set("active", listener.clone().into());
-        self.active_listener = Some(listener);
+        let callback = Callback::new(callback);
+        self = self.set("active", callback.clone().into());
+        self.active_callback = Some(callback);
 
         self
     }
@@ -96,28 +95,27 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::new(callback);
-        let cb:&Function = listener.into_js();
-        self = self.set("failed", JsValue::from(cb));
-        self.failed_listener = Some(listener);
+        let callback = Callback::new(callback);
+        self = self.set("failed", callback.clone().into());
+        self.failed_callback = Some(callback);
 
         self        
     }
 
     pub fn build(self)->Result<nw_sys::Shortcut>{
-        if let Some(listener) = self.active_listener{
+        if let Some(callback) = self.active_callback{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.callbacks.insert(listener)?;
+            app.callbacks.insert(callback)?;
         }
-        if let Some(listener) = self.failed_listener{
+        if let Some(callback) = self.failed_callback{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.callbacks.insert(listener)?;
+            app.callbacks.insert(callback)?;
         }
 
         let shortcut = nw_sys::Shortcut::new(&self.options);
@@ -131,6 +129,6 @@ impl ShortcutBuilder{
         Option<Callback<CallbackClosure<JsValue>>>
     )>{
         let shortcut = nw_sys::Shortcut::new(&self.options);
-        Ok((shortcut, self.active_listener, self.failed_listener))
+        Ok((shortcut, self.active_callback, self.failed_callback))
     }
 }

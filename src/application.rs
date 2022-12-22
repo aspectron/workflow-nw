@@ -94,15 +94,15 @@ impl Application{
     where
         F:FnMut(nw_sys::Window) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::new(callback);
+        let callback = Callback::new(callback);
     
         nw_sys::window::open_with_options_and_callback(
             url,
             option,
-            listener.as_ref()
+            callback.as_ref()
         );
 
-        self.callbacks.insert(listener)?;
+        self.callbacks.insert(callback)?;
         Ok(())
     }
 
@@ -135,12 +135,12 @@ impl Application{
         let dom_win = win.window();
         let body = utils::body(Some(dom_win));
 
-        let listener =  callback!(callback);
+        let callback =  callback!(callback);
 
-        //let listener = Callback::new(callback);
-        body.add_event_listener_with_callback("contextmenu", listener.as_ref())?;
+        //let callback = Callback::new(callback);
+        body.add_event_listener_with_callback("contextmenu", callback.as_ref())?;
 
-        self.callbacks.insert(listener)?;
+        self.callbacks.insert(callback)?;
 
         Ok(())
     }
