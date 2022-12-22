@@ -52,7 +52,7 @@ impl TrayIconBuilder{
         self
     }
 
-    /// Set the icon of the tray, icon must a path to your icon file.
+    /// Set the icon of the tray, icon must receive a path to your icon file.
     /// It can be a relative path which points to an icon in your app,
     /// or an absolute path pointing to a file in user’s system.
     /// 
