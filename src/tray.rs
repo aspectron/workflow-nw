@@ -6,7 +6,8 @@ use wasm_bindgen::prelude::*;
 use nw_sys::{Menu, Tray, tray::Options, menu_item::MenuItem};
 use nw_sys::{prelude::*, result::Result};
 use web_sys::MouseEvent;
-use crate::application::{app, Callback, CallbackClosure};
+use crate::application::app;
+use workflow_wasm::prelude::*;
 
 /// Provides a builder pattern for constructing a system tray menu
 /// for the application.

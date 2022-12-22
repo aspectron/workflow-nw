@@ -7,7 +7,8 @@ use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
 use nw_sys::menu_item::Type as MenuItemType;
 use nw_sys::{Menu, MenuItem};
-use crate::application::{app, Callback, CallbackClosure};
+use crate::application::app;
+use workflow_wasm::prelude::*;
 
 /// create a Separator [`MenuItem`](nw_sys::MenuItem)
 pub fn menu_separator()->nw_sys::MenuItem{

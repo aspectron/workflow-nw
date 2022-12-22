@@ -10,8 +10,10 @@ use workflow_log::log_debug;
 use workflow_dom::utils::window;
 use std::sync::Arc;
 use web_sys::MediaStream;
-use crate::application::{app, Callback, CallbackClosureWithoutResult};
+use crate::application::app;
+pub use workflow_wasm::prelude::*;
 
+/// MediaStream track kind
 pub enum MediaStreamTrackKind {
     Video,
     Audio,
@@ -37,16 +39,6 @@ extern "C" {
 }
 
 impl OptionsExt for VideoConstraints{}
-
-/*
-
-/// Auto gain control
-    /// 
-    /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSupportedConstraints)
-    pub fn auto_gain_control(self, auto_gain_control:bool)->Self{
-        self.set("autoGainControl", JsValue::from(auto_gain_control))
-    }
-*/
 
 impl VideoConstraints {
 
@@ -177,13 +169,7 @@ pub fn get_user_media(
 
     let promise = media_devices.get_user_media_with_constraints(&constraints)?;
 
-    // let mut listener = Callback::<CallbackClosureWithoutResult<JsValue>>::default();
-    // listener.set_closure(move |value:JsValue|{
-    // @surinder - please check
-    // let mut listener = Callback::<CallbackClosureWithoutResult<JsValue>>::new(move |value:JsValue|{
-    // let mut listener = Callback::new(move |value:JsValue|{
     let listener = Callback::new(move |value:JsValue|{
-    // listener.set_closure(move |value:JsValue|{
         if let Ok(media_stream) = value.dyn_into::<MediaStream>(){
             callback(Some(media_stream));
         }else{
@@ -191,15 +177,14 @@ pub fn get_user_media(
         }
     });
 
-    //log_info!("listener: {:?}", listener);
     let binding = match listener.closure(){
         Ok(b)=>b,
         Err(err)=>{
-            return Err(format!("media::get_user_media(), listener.closure_without_result failed, error: {:?}", err).into());
+            return Err(format!("media::get_user_media(), listener.closure() failed, error: {:?}", err).into());
         }
     };
-    let cb = binding.as_ref();
-    let _ = promise.then(cb);
+
+    let _ = promise.then(binding.as_ref());
 
     app.callbacks.insert(listener)?;
     Ok(())

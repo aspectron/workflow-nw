@@ -5,7 +5,8 @@
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
-use crate::application::{app, Callback, CallbackClosure};
+use crate::application::app;
+use workflow_wasm::prelude::*;
 
 
 /// Provides a builder pattern for building application
