@@ -1,16 +1,20 @@
+//!
+//!  Builder for application menus.
+//! 
+
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
 use nw_sys::menu_item::Type as MenuItemType;
 use nw_sys::{Menu, MenuItem};
-use crate::app::{app, Callback, CallbackClosure};
+use crate::application::{app, Callback, CallbackClosure};
 
 /// create a Separator [`MenuItem`](nw_sys::MenuItem)
 pub fn menu_separator()->nw_sys::MenuItem{
     nw_sys::MenuItem::new(&nw_sys::menu_item::Type::Separator.into())
 }
 
-/// Menubar Builder
+/// Provides a builder pattern for building application menus.
 pub struct MenubarBuilder{
     pub mac_options: nw_sys::menu::MacOptions,
     pub app_name: String,
@@ -119,8 +123,8 @@ impl MenuItemBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::with_closure(callback);
-        let cb:&Function = listener.into_js();
+        let listener = Callback::new(callback);
+        let cb:&Function = listener.as_ref();//.into_js();
         self = self.set("click", JsValue::from(cb));
         self.listener = Some(listener);
 
@@ -179,7 +183,7 @@ impl MenuItemBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_callback(listener)?;
+            app.callbacks.insert(listener)?;
         }
 
         let menu_item = nw_sys::MenuItem::new(&self.options);

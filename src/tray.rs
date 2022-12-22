@@ -1,9 +1,15 @@
+//!
+//! Builder for the application system Tray menu.
+//! 
+
 use wasm_bindgen::prelude::*;
 use nw_sys::{Menu, Tray, tray::Options, menu_item::MenuItem};
 use nw_sys::{prelude::*, result::Result};
 use web_sys::MouseEvent;
-use crate::app::{app, Callback, CallbackClosure};
+use crate::application::{app, Callback, CallbackClosure};
 
+/// Provides a builder pattern for constructing a system tray menu
+/// for the application.
 pub struct TrayIconBuilder{
     pub options:Options,
     pub menu: Option<Menu>,
@@ -103,7 +109,7 @@ impl TrayIconBuilder{
     where
         F:FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
     {
-        self.listener = Some(Callback::with_closure(callback));
+        self.listener = Some(Callback::new(callback));
 
         self        
     }
@@ -148,7 +154,7 @@ impl TrayIconBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_callback(listener)?;
+            app.callbacks.insert(listener)?;
         }
 
         Ok(tray)

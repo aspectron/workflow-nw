@@ -6,7 +6,7 @@ use workflow_log::log_debug;
 use workflow_dom::utils::window;
 use std::sync::Arc;
 use web_sys::MediaStream;
-use crate::app::{app, Callback, CallbackClosureWithoutResult};
+use crate::application::{app, Callback, CallbackClosureWithoutResult};
 
 pub enum MediaStreamTrackKind {
     Video,
@@ -173,9 +173,13 @@ pub fn get_user_media(
 
     let promise = media_devices.get_user_media_with_constraints(&constraints)?;
 
-    let mut listener = Callback::<CallbackClosureWithoutResult<JsValue>>::new();
-
-    listener.set_closure(move |value:JsValue|{
+    // let mut listener = Callback::<CallbackClosureWithoutResult<JsValue>>::default();
+    // listener.set_closure(move |value:JsValue|{
+    // @surinder - please check
+    // let mut listener = Callback::<CallbackClosureWithoutResult<JsValue>>::new(move |value:JsValue|{
+    // let mut listener = Callback::new(move |value:JsValue|{
+    let listener = Callback::new(move |value:JsValue|{
+    // listener.set_closure(move |value:JsValue|{
         if let Ok(media_stream) = value.dyn_into::<MediaStream>(){
             callback(Some(media_stream));
         }else{
@@ -193,6 +197,6 @@ pub fn get_user_media(
     let cb = binding.as_ref();
     let _ = promise.then(cb);
 
-    app.push_callback(listener)?;
+    app.callbacks.insert(listener)?;
     Ok(())
 }

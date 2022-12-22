@@ -10,7 +10,7 @@ edition = "2021"
 wasm-bindgen = "0.2.79"
 js-sys = "0.3.56"
 nw-sys={path="../nw-sys"}
-workflow-log="*"
+workflow-log={path="../workflow-log"}
 workflow-wasm = {path="../workflow-wasm"}
 workflow-dom ={path="../workflow-dom"}
 

@@ -1,8 +1,15 @@
+//!
+//! Builder for application shortcuts.
+//! 
+
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use nw_sys::{prelude::*, result::Result};
-use crate::app::{app, Callback, CallbackClosure};
+use crate::application::{app, Callback, CallbackClosure};
 
+
+/// Provides a builder pattern for building application
+/// keyboard shortcuts.
 pub struct ShortcutBuilder{
     pub options: nw_sys::shortcut::Options,
     pub active_listener: Option<Callback<CallbackClosure<JsValue>>>,
@@ -72,9 +79,11 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::with_closure(callback);
-        let cb:&Function = listener.into_js();
-        self = self.set("active", JsValue::from(cb));
+        let listener = Callback::new(callback);
+        // let cb:&Function = listener.into_js();
+        // self = self.set("active", JsValue::from(cb));
+        // @surinder - please check
+        self = self.set("active", listener.clone().into());
         self.active_listener = Some(listener);
 
         self        
@@ -89,7 +98,7 @@ impl ShortcutBuilder{
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
-        let listener = Callback::with_closure(callback);
+        let listener = Callback::new(callback);
         let cb:&Function = listener.into_js();
         self = self.set("failed", JsValue::from(cb));
         self.failed_listener = Some(listener);
@@ -103,14 +112,14 @@ impl ShortcutBuilder{
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_callback(listener)?;
+            app.callbacks.insert(listener)?;
         }
         if let Some(listener) = self.failed_listener{
             let app = match app(){
                 Some(app)=>app,
                 None=>return Err("app is not initialized".to_string().into())
             };
-            app.push_callback(listener)?;
+            app.callbacks.insert(listener)?;
         }
 
         let shortcut = nw_sys::Shortcut::new(&self.options);
