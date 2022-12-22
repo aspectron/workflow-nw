@@ -1,3 +1,7 @@
+//!
+//! Media control helpers
+//! 
+
 use wasm_bindgen::{prelude::*, JsCast};
 use js_sys::Object;
 use nw_sys::options::OptionsExt;

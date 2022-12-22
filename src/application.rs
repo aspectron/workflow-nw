@@ -1,5 +1,5 @@
 //! 
-//! Node Webkit application helper provided by the [`App`] struct.
+//! Node Webkit application helper provided by the [`Application`] struct.
 //! 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
