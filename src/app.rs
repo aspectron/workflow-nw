@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 //use workflow_log::log_trace;
-pub use workflow_wasm::listener::{Callback, Listener, CallbackClosure, CallbackClosureWithoutResult};
+pub use workflow_wasm::listener::{Id, Callback, Listener, CallbackClosure, CallbackClosureWithoutResult};
 use nw_sys::{prelude::*, utils, result::Result};
 use web_sys::{MouseEvent, MediaStream, MediaStreamTrack};
 use crate::media::MediaStreamTrackKind;
@@ -15,13 +17,13 @@ pub fn app()->Option<Arc<App>>{
 #[derive(Clone)]
 pub struct App{
     pub media_stream: Arc<Mutex<Option<MediaStream>>>,
-    pub callbacks: Arc<Mutex<Vec<Arc<dyn Listener>>>>,
+    pub callbacks: Arc<Mutex<HashMap<Id, Arc<dyn Listener>>>>,
 }
 
 impl App{
     pub fn new()->Result<Arc<Self>>{
         let app = Arc::new(Self{
-            callbacks: Arc::new(Mutex::new(vec![])),
+            callbacks: Arc::new(Mutex::new(HashMap::new())),
             media_stream: Arc::new(Mutex::new(None))
         });
 
@@ -44,7 +46,7 @@ impl App{
 
     pub fn stop_media_stream(
         &self,
-        track_kind:Option<MediaStreamTrackKind>,
+        track_kind: Option<MediaStreamTrackKind>,
         mut stream: Option<MediaStream>
     )->Result<()>{
         if stream.is_none(){
@@ -90,7 +92,20 @@ impl App{
                 return Err(e.to_string().into());
             }
         };
-        locked.push(Arc::new(callback));
+        let id = callback.get_id();
+        locked.insert(id, Arc::new(callback));
+        Ok(())
+    }
+
+    pub fn remove_callback(&self, id:&Id)->Result<()>{
+        let mut locked = match self.callbacks.lock(){
+            Ok(a)=>a,
+            Err(e)=>{
+                return Err(e.to_string().into());
+            }
+        };
+
+        locked.remove(id);
         Ok(())
     }
 
