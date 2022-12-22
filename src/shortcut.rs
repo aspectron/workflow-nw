@@ -81,13 +81,10 @@ impl ShortcutBuilder{
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
     {
         let listener = Callback::new(callback);
-        // let cb:&Function = listener.into_js();
-        // self = self.set("active", JsValue::from(cb));
-        // @surinder - please check
         self = self.set("active", listener.clone().into());
         self.active_listener = Some(listener);
 
-        self        
+        self
     }
 
     /// Set the failed callback of a Shortcut.
