@@ -1,6 +1,43 @@
 //!
 //! Builder for the application system Tray menu.
 //! 
+//! # Synopsis
+//! ```rust
+//! // create Tray icon menu without submenus
+//! TrayMenuBuilder::new()
+//!     .icon("resources/icons/tray-icon@2x.png")
+//!     .icons_are_templates(false)
+//!     .callback(|_|{
+//!         window().alert_with_message("Tray menu click")?;
+//!         Ok(())
+//!     })
+//!     .build()?;
+//! 
+//! // create Tray menu icon with submenus
+//! let submenu_1 = MenuItemBuilder::new()
+//!     .label("Say hi")
+//!     .key("6")
+//!     .modifiers("ctrl")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         window().alert_with_message("hi")?;
+//!         Ok(())
+//!     }).build()?;
+//!     
+//! let exit_menu = MenuItemBuilder::new()
+//!     .label("Exit")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         nw_sys::app::close_all_windows();
+//!         Ok(())
+//!     }).build()?;
+//!     
+//! let _tray = TrayMenuBuilder::new()
+//!     .icon("resources/icons/tray-icon@2x.png")
+//!     .icons_are_templates(false)
+//!     .submenus(vec![submenu_1, menu_separator(), exit_menu])
+//!     .build()?;
+//! 
+//! ```
+//! 
 
 use wasm_bindgen::prelude::*;
 use nw_sys::{Menu, Tray, tray::Options, menu_item::MenuItem};
@@ -11,6 +48,8 @@ use workflow_wasm::prelude::*;
 
 /// Provides a builder pattern for constructing a system tray menu
 /// for the application.
+/// 
+/// For usage example please refer to [Examples](self)
 pub struct TrayMenuBuilder{
     pub options:Options,
     pub menu: Option<Menu>,
@@ -28,7 +67,7 @@ impl TrayMenuBuilder{
         }
     }
 
-    fn set(mut self, key:&str, value:JsValue)->Self{
+    pub fn set(mut self, key:&str, value:JsValue)->Self{
         self.options = self.options.set(key, value);
         self
     }

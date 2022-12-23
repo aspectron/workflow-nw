@@ -1,6 +1,59 @@
 //!
 //!  Builder for application menus.
 //! 
+//! ```rust
+//! // create context menu
+//! let item_1 = MenuItemBuilder::new()
+//!     .label("Sub Menu 1")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         window().alert_with_message("Context menu 1 clicked")?;
+//!         Ok(())
+//!     }).build()?;
+//!     
+//! let item_2 = MenuItemBuilder::new()
+//!     .label("Sub Menu 2")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         window().alert_with_message("Context menu 2 clicked")?;
+//!         Ok(())
+//!     }).build()?;
+//!     
+//!     
+//! app.create_context_menu(vec![item_1, item_2])?;
+//! 
+//! // create menubar
+//! let submenu_1 = MenuItemBuilder::new()
+//!     .label("Menu A")
+//!     .key("8")
+//!     .modifiers("ctrl")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         //log_trace!("Create window : menu clicked");
+//!         window().alert_with_message("Menu A clicked")?;
+//!         Ok(())
+//!     }).build()?;
+//!     
+//! let submenu_2 = MenuItemBuilder::new()
+//!     .label("Say hello")
+//!     .key("9")
+//!     .modifiers("ctrl")
+//!     .callback(move |_|->std::result::Result<(), JsValue>{
+//!         window().alert_with_message("Hello")?;
+//!         Ok(())
+//!     }).build()?;
+//!     
+//! let item = MenuItemBuilder::new()
+//!     .label("Top Menu")
+//!     .submenus(vec![submenu_1, menu_separator(), submenu_2])
+//!     .build()?;
+//!     
+//!     
+//! MenubarBuilder::new("Example App")
+//!     //.mac_hide_edit(true)
+//!     .mac_hide_window(true)
+//!     .append(item)
+//!     .build(true)?;
+//!
+//! ```
+//! 
 
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
@@ -16,6 +69,8 @@ pub fn menu_separator()->nw_sys::MenuItem{
 }
 
 /// Provides a builder pattern for building application menus.
+/// 
+/// For usage example please refer to [Examples](self)
 pub struct MenubarBuilder{
     pub mac_options: nw_sys::menu::MacOptions,
     pub app_name: String,
@@ -71,6 +126,8 @@ impl MenubarBuilder{
 }
 
 /// MenuItem Builder
+/// 
+/// For usage example please refer to [Examples](self)
 pub struct MenuItemBuilder{
     pub options: nw_sys::menu_item::Options,
     pub callback: Option<Callback<CallbackClosure<JsValue>>>

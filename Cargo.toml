@@ -21,6 +21,7 @@ features = [
     'Document',
     'Window',
     'HtmlElement',
+    'HtmlVideoElement',
     'CustomEvent',
     'MouseEvent',
     'Navigator',

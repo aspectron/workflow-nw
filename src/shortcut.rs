@@ -1,6 +1,21 @@
 //!
 //! Builder for application shortcuts.
 //! 
+//! # Synopsis
+//! ```rust
+//! let shortcut = ShortcutBuilder::new()
+//!     .key("Ctrl+Shift+Q")
+//!     .active(|_|{
+//!         window().alert_with_message("Ctrl+Shift+Q pressed, App will close")?;
+//!         //nw_sys::app::quit();
+//!         nw_sys::app::close_all_windows();
+//!         Ok(())
+//!     })
+//!     .build()?;
+//!     
+//! nw_sys::app::register_global_hot_key(&shortcut);
+//! ```
+//! 
 
 use wasm_bindgen::prelude::*;
 use nw_sys::{prelude::*, result::Result};
@@ -10,6 +25,8 @@ use workflow_wasm::prelude::*;
 
 /// Provides a builder pattern for building application
 /// keyboard shortcuts.
+/// 
+/// For usage example please refer to [Examples](self)
 pub struct ShortcutBuilder{
     pub options: nw_sys::shortcut::Options,
     pub active_callback: Option<Callback<CallbackClosure<JsValue>>>,

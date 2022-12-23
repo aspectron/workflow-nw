@@ -1,17 +1,55 @@
 //!
 //! Media control helpers
 //! 
+//! # Synopsis
+//! ```rust
+//! 
+//! // create Application instance
+//! let app = Application::new()?;
+//! 
+//! // choose desktop media
+//! app.choose_desktop_media(
+//!     nw_sys::screen::MediaSources::ScreenAndWindow,
+//!     move |stream_id: Option<String>|->nw_sys::result::Result<()>{
+//!         if let Some(stream_id) = stream_id{
+//!             render_media(stream_id)?;
+//!         }
+//!         Ok(())
+//!     }
+//! )?;
+//! 
+//! fn render_media(stream_id:String)->Result<()>{
+//!     log_info!("stream_id: {:?}", stream_id);
+//!      
+//!     let video_element_id = "video_el".to_string();
+//!     let video_constraints = VideoConstraints::new()
+//!         .source_id(&stream_id)
+//!         .max_height(1000);
+//! 
+//!     workflow_nw::media::render_media(
+//!         video_element_id,
+//!         video_constraints,
+//!         None,
+//!         move |stream|->nw_sys::result::Result<()>{
+//!             workflow_nw::application::app().unwrap().set_media_stream(stream)?;
+//!             Ok(())
+//!         }
+//!     )?;
+//!      
+//!     Ok(())
+//! }
+//! ```
 
 use wasm_bindgen::{prelude::*, JsCast};
 use js_sys::Object;
 use nw_sys::options::OptionsExt;
 use nw_sys::result::Result;
-use workflow_log::log_debug;
-use workflow_dom::utils::window;
+use workflow_log::{log_error, log_debug};
+use workflow_dom::utils::{window, document};
 use std::sync::Arc;
 use web_sys::MediaStream;
 use crate::application::app;
-pub use workflow_wasm::prelude::*;
+use workflow_wasm::prelude::*;
 
 /// MediaStream track kind
 pub enum MediaStreamTrackKind {
@@ -33,6 +71,9 @@ impl ToString for MediaStreamTrackKind{
 
 #[wasm_bindgen]
 extern "C" {
+    /// Video Constraints
+    /// 
+    /// 
     #[wasm_bindgen(extends = Object)]
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub type VideoConstraints;
@@ -140,7 +181,10 @@ impl VideoConstraints {
     
 }
 
-
+/// Get user media
+/// 
+/// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+/// 
 pub fn get_user_media(
     video_constraints: VideoConstraints,
     audio_constraints: Option<JsValue>,
@@ -169,7 +213,11 @@ pub fn get_user_media(
 
     let promise = media_devices.get_user_media_with_constraints(&constraints)?;
 
-    let callback = Callback::new(move |value:JsValue|{
+    let mut callback_ = Callback::default();
+    let app_clone = app.clone();
+    let callback_id = callback_.get_id();
+    callback_.set_closure(move |value:JsValue|{
+        let _ = app_clone.callbacks.remove(&callback_id);
         if let Ok(media_stream) = value.dyn_into::<MediaStream>(){
             callback(Some(media_stream));
         }else{
@@ -177,15 +225,55 @@ pub fn get_user_media(
         }
     });
 
-    let binding = match callback.closure(){
+    let binding = match callback_.closure(){
         Ok(b)=>b,
         Err(err)=>{
-            return Err(format!("media::get_user_media(), callback.closure() failed, error: {:?}", err).into());
+            return Err(format!("media::get_user_media(), callback_.closure() failed, error: {:?}", err).into());
         }
     };
 
     let _ = promise.then(binding.as_ref());
 
-    app.callbacks.insert(callback)?;
+    app.callbacks.insert(callback_)?;
+    Ok(())
+}
+
+
+/// render media to a video element
+pub fn render_media<F>(
+    video_element_id:String,
+    video_constraints: VideoConstraints,
+    audio_constraints: Option<JsValue>,
+    callback: F
+)->Result<()>
+where
+    F: 'static + Fn(Option<MediaStream>) ->Result<()>
+{
+
+    get_user_media(
+        video_constraints,
+        audio_constraints,
+        Arc::new(move |value|{
+            let media_stream = if let Some(media_stream) = value{
+                let el = document().get_element_by_id(&video_element_id).unwrap();
+                match el.dyn_into::<web_sys::HtmlVideoElement>(){
+                    Ok(el)=>{
+                        el.set_src_object(Some(&media_stream));
+                    }
+                    Err(err)=>{
+                        log_error!("Unable to cast element to HtmlVideoElement: element = {:?}", err);
+                    }
+                }
+
+                Some(media_stream)
+            }else{
+                None
+            };
+
+            callback(media_stream).map_err(|err|{
+                log_error!("render_media callback error: {:?}", err);
+            }).ok();
+        })
+    )?;
     Ok(())
 }
