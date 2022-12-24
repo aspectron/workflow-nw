@@ -28,7 +28,7 @@ pub struct Application{
     /// a storage for [MediaStream](web_sys::MediaStream)
     pub media_stream: Arc<Mutex<Option<MediaStream>>>,
 
-    /// hold [Callback](workflow_wasm::callback::Callback)
+    /// holds references to [Callback](workflow_wasm::callback::Callback)
     pub callbacks: CallbackMap,
 }
 
@@ -171,7 +171,7 @@ impl Application{
     /// Screen sharing by selection; Currently only working in Windows and OSX 
     /// and some linux distribution.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Screen/#screenchoosedesktopmedia-sources-callback)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Screen/#screenchoosedesktopmedia-sources-callback)
     ///
     pub fn choose_desktop_media<F>(
         &self,

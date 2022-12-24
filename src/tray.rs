@@ -74,7 +74,7 @@ impl TrayMenuBuilder{
 
     /// Set the title of the tray.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traytitle)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traytitle)
     pub fn title(self, title:&str)->Self{
         self.set("title", JsValue::from(title))
     }
@@ -84,7 +84,7 @@ impl TrayMenuBuilder{
     /// Note: tooltip is showed on all three platforms.
     /// Should be set as Tray property rather from option object constructor.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traytooltip)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traytooltip)
     pub fn tooltip(mut self, tooltip:&str)->Self{
         self = self.set("tooltip", JsValue::from(tooltip));
         self.tooltip = Some(tooltip.to_string());
@@ -100,14 +100,14 @@ impl TrayMenuBuilder{
     /// png icon is not sized down like in windows notification area,
     /// it is rather displayed in 1:1 ratio.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayicon)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayicon)
     pub fn icon(self, icon:&str)->Self{
         self.set("icon", JsValue::from(icon))
     }
 
     /// (Mac) Set the alternate (active) tray icon.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayalticon-mac)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayalticon-mac)
     pub fn alticon(self, alticon:&str)->Self{
         self.set("alticon", JsValue::from(alticon))
     }
@@ -119,7 +119,7 @@ impl TrayMenuBuilder{
     /// Template images should consist only of black and clear colours
     /// and can use the alpha channel in the image to adjust the opacity of black content.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayiconsaretemplates-mac)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#trayiconsaretemplates-mac)
     pub fn icons_are_templates(self, icons_are_templates:bool)->Self{
         self.set("iconsAreTemplates", JsValue::from(icons_are_templates))
     }
@@ -136,7 +136,7 @@ impl TrayMenuBuilder{
     /// is the only way to bind a menu to tray, there’s no way to popup a menu with 
     /// left mouse button click on Linux and Windows.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traymenu)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traymenu)
     pub fn menu(mut self, menu: Menu)->Self{
         self.menu = Some(menu);
         self
@@ -144,7 +144,7 @@ impl TrayMenuBuilder{
 
     /// The callback function when tray icon is clicked.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#event-click)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#event-click)
     pub fn callback<F>(mut self, callback:F)->Self
     where
         F:FnMut(MouseEvent) -> std::result::Result<(), JsValue> + 'static
@@ -156,7 +156,7 @@ impl TrayMenuBuilder{
 
     /// A submenu
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traymenu)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Tray/#traymenu)
     pub fn submenus(self, items:Vec<MenuItem>)->Self{
         let submenu = nw_sys::Menu::new();
         for menu_item in items{

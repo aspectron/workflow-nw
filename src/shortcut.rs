@@ -83,7 +83,7 @@ impl ShortcutBuilder{
     /// - Escape
     /// 
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutkey)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutkey)
     pub fn key(self, key:&str)->Self{
         self.set("key", JsValue::from(key))
     }
@@ -91,7 +91,7 @@ impl ShortcutBuilder{
     /// Set the active callback of a Shortcut.
     /// It will be called when user presses the shortcut.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutactive)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutactive)
     pub fn active<F>(mut self, callback:F)->Self
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
@@ -107,7 +107,7 @@ impl ShortcutBuilder{
     /// It will be called when application passes an invalid key,
     /// or failed to register the key.
     /// 
-    /// [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutfailed)
+    /// ⧉ [NWJS Documentation](https://docs.nwjs.io/en/latest/References/Shortcut/#shortcutfailed)
     pub fn failed<F>(mut self, callback:F)->Self
     where
         F:FnMut(JsValue) -> std::result::Result<(), JsValue> + 'static
