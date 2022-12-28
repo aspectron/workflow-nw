@@ -42,7 +42,7 @@
 
 use wasm_bindgen::{prelude::*, JsCast};
 use js_sys::Object;
-use nw_sys::options::OptionsExt;
+use nw_sys::prelude::OptionsExt;
 use nw_sys::result::Result;
 use workflow_log::{log_error, log_debug};
 use workflow_dom::utils::{window, document};
