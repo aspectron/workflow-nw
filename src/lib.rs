@@ -1,11 +1,11 @@
 //! Utilities and builders for developing Node Webkit applications
 //! on top of [nw-sys](nw-sys) framework. These modules simplify building
 //! various application components.
-//! 
+//!
 //! # Synopsis
-//! 
+//!
 //! ```rust
-//! 
+//!
 //! // create Application instance
 //! let app = Application::new()?;
 //!  
@@ -25,9 +25,9 @@
 //!     .height(200)
 //!     .left(0)
 //!     .top(100);
-//! 
+//!
 //! app.create_window_with_callback(
-//!     "/root/index.html", 
+//!     "/root/index.html",
 //!     &options,
 //!     move |_win|->std::result::Result<(), JsValue>{
 //!         //log_info!("window created");
@@ -51,7 +51,7 @@
 //!     }).build()?;
 //!      
 //! app.create_context_menu(vec![item_1, item_2])?;
-//! 
+//!
 //! // choose desktop media
 //! app.choose_desktop_media(
 //!     nw_sys::screen::MediaSources::ScreenAndWindow,
@@ -62,7 +62,7 @@
 //!         Ok(())
 //!     }
 //! )?;
-//! 
+//!
 //! fn render_media(stream_id:String)->Result<()>{
 //!     log_info!("stream_id: {:?}", stream_id);
 //!      
@@ -70,7 +70,7 @@
 //!     let video_constraints = VideoConstraints::new()
 //!         .source_id(&stream_id)
 //!         .max_height(1000);
-//! 
+//!
 //!     workflow_nw::media::render_media(
 //!         video_element_id,
 //!         video_constraints,
@@ -84,15 +84,15 @@
 //!     Ok(())
 //! }
 //!
-//! 
-//! 
+//!
+//!
 //! ```
 
 pub mod application;
+pub mod media;
 pub mod menu;
 pub mod prelude;
-pub mod tray;
 pub mod shortcut;
-pub mod media;
+pub mod tray;
 
 pub use workflow_wasm::prelude::*;
